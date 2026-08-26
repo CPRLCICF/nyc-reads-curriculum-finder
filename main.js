@@ -24,7 +24,7 @@
   // From: https://docs.google.com/spreadsheets/d/e/XXXX/pubhtml
   // Use:   https://docs.google.com/spreadsheets/d/e/XXXX/pub
   const CONFIG = {
-    SHEET_BASE_PUB: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSE0Mlty0JFy27H58nEULY3GNCsvwyCfIw4CQvf2_KbXsGXa4GIhU_SQojf5eXdz1MkKO7se9lJyjZT/pub',
+    SHEET_BASE_PUB: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT4AF0prElSWZtki_k9Xv1KPA01lARZf5-ctTFz9vi2qnTpLe2ji_M7aXi2v_Uo-u2_NuizVhINlaua/pub',
     SHEETS: {
       pacingGuide: 'Pacing Guide',
       directories: 'School Directories',
