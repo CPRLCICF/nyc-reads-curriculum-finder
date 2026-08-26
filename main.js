@@ -26,8 +26,8 @@
   const CONFIG = {
     SHEET_BASE_PUB: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT4AF0prElSWZtki_k9Xv1KPA01lARZf5-ctTFz9vi2qnTpLe2ji_M7aXi2v_Uo-u2_NuizVhINlaua/pub',
     SHEETS: {
-      pacingGuide: 'Pacing Guide',
-      directories: 'School Directories',
+      pacingGuide: 'SY 2026-2027',
+      directories: 'School Names',
     }
   };
 
