@@ -89,6 +89,21 @@ def normalize_text(s):
     return (s or '').replace('’', "'").replace('“', '"').replace('”', '"').strip()
 
 
+def _normalize_curriculum_text(value: str) -> str:
+    """
+    Normalize curriculum labels for stable, case-insensitive, punctuation-insensitive comparisons.
+    - collapse internal whitespace
+    - normalize ampersand spacing to '&'
+    - lowercase
+    """
+    s = normalize_text(str(value or "")).lower()
+    # normalize ampersand spacing
+    s = re.sub(r"\s*&\s*", "&", s)
+    # remove extra whitespace
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
+
+
 def split_genres(s: str):
     if not s:
         return []
@@ -833,17 +848,44 @@ def api_search():
     except Exception:
         schools_rows = []
     resolved_curriculum = ''
+    resolved_curriculum_norm = ''
+    # Normalize lookup helper for stable comparisons
+    def _normalize_lookup_text(value: str) -> str:
+        s = normalize_text(str(value or "")).lower()
+        s = re.sub(r"\s+", " ", s).strip()
+        return s
+
+    norm_q_school = _normalize_lookup_text(q_school)
     for r in schools_rows:
-        rd = (r.get(_normalize_header('District #')) or r.get('district') or '').strip()
-        rs = (r.get(_normalize_header('School Name - NYC DOE')) or r.get('school') or '').strip()
-        if rd == q_district and rs == q_school:
-            resolved_curriculum = (r.get(_normalize_header('Curriculum')) or r.get('curriculum') or '').strip()
-            # Treat explicit placeholders like 'N/A', 'NA', or 'None' as unset so we don't
-            # incorrectly filter pacing rows to a literal 'N/A' curriculum (which yields no results).
-            if resolved_curriculum and str(resolved_curriculum).strip().lower() in ('n/a', 'na', 'none'):
-                resolved_curriculum = ''
-            if resolved_curriculum:
-                break
+        # find district value from common candidate headers
+        district_val = (
+            r.get(_normalize_header('District #'))
+            or r.get('district')
+            or r.get('district_number')
+            or r.get('district_no')
+            or r.get('districtid')
+            or ''
+        )
+        # find school name from common candidate headers
+        school_val = (
+            r.get(_normalize_header('School Name - NYC DOE'))
+            or r.get('school_name')
+            or r.get('school')
+            or ''
+        )
+        if not district_val or not school_val:
+            continue
+        if str(district_val).strip() != q_district:
+            continue
+        if _normalize_lookup_text(school_val) != norm_q_school:
+            continue
+        # matched row
+        resolved_curriculum = (r.get(_normalize_header('Curriculum')) or r.get('curriculum') or '').strip()
+        if resolved_curriculum and str(resolved_curriculum).strip().lower() in ('n/a', 'na', 'none'):
+            resolved_curriculum = ''
+        if resolved_curriculum:
+            resolved_curriculum_norm = _normalize_curriculum_text(resolved_curriculum)
+        break
 
     # Load PACING rows
     try:
@@ -927,8 +969,9 @@ def api_search():
         if not (curriculum and grade and start_md and end_md and module_number):
             continue
 
-        # Filter by resolved curriculum and selected grade
-        if resolved_curriculum and curriculum != resolved_curriculum:
+        # Filter by resolved curriculum (using normalized comparison) and selected grade
+        curr_norm = _normalize_curriculum_text(curriculum)
+        if resolved_curriculum_norm and curr_norm != resolved_curriculum_norm:
             continue
         if q_grade and str(grade) != str(q_grade):
             continue
@@ -948,7 +991,7 @@ def api_search():
             'district': q_district,
             'school': q_school,
             'grade': str(grade),
-            'curriculum': resolved_curriculum or curriculum,
+            'curriculum': curriculum,
             'module_number': str(module_number),
             'module_title': module_title,
             'essential_question': essential_question,
