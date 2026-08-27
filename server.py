@@ -29,9 +29,9 @@ SHEET_ID = os.environ.get('SHEET_ID', '12xrUodG0RyTpAlfo6_CO7phNY2LdzjH9mqieJQIV
 GID_FOR_PACING = os.environ.get('GID_FOR_PACING', os.environ.get('SHEET_GID_PACING', '')).strip()
 GID_FOR_SCHOOLS = os.environ.get('GID_FOR_SCHOOLS', os.environ.get('SHEET_GID_SCHOOLS', '')).strip()
 
-# By default, prefer using the user's published sheet links (can be overridden by env).
-DEFAULT_PACING_PUBHTML = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSE0Mlty0JFy27H58nEULY3GNCsvwyCfIw4CQvf2_KbXsGXa4GIhU_SQojf5eXdz1MkKO7se9lJyjZT/pubhtml?gid=0&single=true'
-DEFAULT_SCHOOLS_PUBHTML = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSE0Mlty0JFy27H58nEULY3GNCsvwyCfIw4CQvf2_KbXsGXa4GIhU_SQojf5eXdz1MkKO7se9lJyjZT/pubhtml?gid=136947076&single=true'
+# By default, prefer using the published e/... sheet for SY 2026-2027 and the School Names tab
+DEFAULT_PACING_PUBHTML = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT4AF0prElSWZtki_k9Xv1KPA01lARZf5-ctTFz9vi2qnTpLe2ji_M7aXi2v_Uo-u2_NuizVhINlaua/pubhtml?gid=301760629&single=true'
+DEFAULT_SCHOOLS_PUBHTML = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT4AF0prElSWZtki_k9Xv1KPA01lARZf5-ctTFz9vi2qnTpLe2ji_M7aXi2v_Uo-u2_NuizVhINlaua/pubhtml?gid=1673123403&single=true'
 
 def _pubhtml_to_csv(url: str) -> str:
     u = (url or '').strip()
@@ -49,10 +49,7 @@ def _pubhtml_to_csv(url: str) -> str:
     return base.replace('/pub', '/gviz/tq') + '?tqx=out:csv'
 
 # Allow overriding with direct CSV URLs via env; default to the user's specified spreadsheet+gid for Pacing Guides
-PACING_CSV = os.environ.get(
-    'PACING_CSV',
-    'https://docs.google.com/spreadsheets/d/12xrUodG0RyTpAlfo6_CO7phNY2LdzjH9mqieJQIV3Xs/export?format=csv&gid=1707233296'
-).strip()
+PACING_CSV = os.environ.get('PACING_CSV', _pubhtml_to_csv(DEFAULT_PACING_PUBHTML)).strip()
 SCHOOLS_CSV = os.environ.get('SCHOOLS_CSV', _pubhtml_to_csv(DEFAULT_SCHOOLS_PUBHTML)).strip()
 
 # Published sheet base URL + tab names (used when direct CSV URLs are not set)
@@ -539,10 +536,15 @@ def _normalize_school_directories(rows):
     curricula = set()
 
     # Candidate header keys (already normalized by _csv_from_text)
-    district_candidates = {
-        'district', 'district_#', 'district_number', 'district_no', 'district_id', 'districtid',
-        _normalize_header('District #'), _normalize_header('District')
-    }
+    district_candidates = [
+        _normalize_header('District #'),
+        'district_#',
+        'district_number',
+        'district_no',
+        'district_id',
+        'districtid',
+        _normalize_header('District')
+    ]
     school_candidates = {
         _normalize_header('School Name - NYC DOE'), 'school_name_-_nyc_doe', 'school_name_nyc_doe',
         'school_name', 'school'
@@ -660,10 +662,15 @@ def api_meta():
     grades_set = set()
 
     # Column mapping for SCHOOLS tab
-    district_candidates = {
-        _normalize_header('District #'), 'district', 'district_number', 'district_no',
-        'district_id', 'districtid'
-    }
+    district_candidates = [
+        _normalize_header('District #'),
+        'district_#',
+        'district_number',
+        'district_no',
+        'district_id',
+        'districtid',
+        'district'
+    ]
     school_candidates = {
         _normalize_header('School Name - NYC DOE'), 'school_name_-_nyc_doe', 'school_name_nyc_doe',
         'school_name', 'school'
@@ -750,6 +757,13 @@ def api_meta():
         'grades': grades_sorted,
         'curricula': sorted(curricula_set),
     }
+    # Prefer numeric district numbers for the frontend dropdown when available
+    numeric_districts = [d for d in meta['districts'] if re.match(r'^\d+$', str(d))]
+    if numeric_districts:
+        numeric_districts_sorted = sorted(numeric_districts, key=lambda x: int(x))
+        meta['districts'] = numeric_districts_sorted
+        # Filter schools to those with numeric district values only so the UI maps correctly
+        meta['schools'] = [s for s in meta['schools'] if s.get('district') in numeric_districts_sorted]
     # Always log summary for debugging
     try:
         app.logger.info(
@@ -824,6 +838,10 @@ def api_search():
         rs = (r.get(_normalize_header('School Name - NYC DOE')) or r.get('school') or '').strip()
         if rd == q_district and rs == q_school:
             resolved_curriculum = (r.get(_normalize_header('Curriculum')) or r.get('curriculum') or '').strip()
+            # Treat explicit placeholders like 'N/A', 'NA', or 'None' as unset so we don't
+            # incorrectly filter pacing rows to a literal 'N/A' curriculum (which yields no results).
+            if resolved_curriculum and str(resolved_curriculum).strip().lower() in ('n/a', 'na', 'none'):
+                resolved_curriculum = ''
             if resolved_curriculum:
                 break
 
@@ -1003,7 +1021,8 @@ def api_modules():
 
 @app.get('/')
 def root():
-    return send_from_directory('.', 'index.html')
+    # Serve the UI from the public/ directory so root (/) returns the frontend index
+    return send_from_directory('public', 'index.html')
 
 
 # Serve JS files from ./scripts
