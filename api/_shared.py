@@ -843,7 +843,7 @@ def build_search(params: dict):
         if selected_grade_norm not in set(allowed_grades):
             resp = {
                 'results': [],
-                'message': 'NYC Reads has not yet rolled out at this school. Please contact the school directly for information about its current literacy curriculum. For more information about NYC Reads visit: \n https://www.schools.nyc.gov/learning/subjects/literacy/nyc-reads \n https://www.nycreadstogether.org/ ',
+                'message': 'NYC Reads has not yet rolled out at this school. Please contact the school directly for information about its current literacy curriculum. For more information about NYC Reads visit: \n\n [NYC Schools](https://www.schools.nyc.gov/learning/subjects/literacy/nyc-reads) \n [NYC Reads Together](https://www.nycreadstogether.org/) ',
                 'selected_school': q_school,
                 'selected_grade': selected_grade_norm
             }
