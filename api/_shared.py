@@ -801,12 +801,22 @@ def build_search(params: dict):
             # Union all allowed grades across exact matching rows
             allowed_set = set()
             for mr in matching_rows:
-                grade_cell = (
-                    mr.get('grade') or mr.get('grades') or mr.get('grades_served')
-                    or mr.get('grade_level') or mr.get('grade_levels') or mr.get('column_e') or ''
-                )
-                for gt in _normalize_grade_tokens(str(grade_cell)):
-                    allowed_set.add(gt)
+                # Prefer explicit grade_level/grades fields when available; union multiple sources
+                grade_cells = []
+                for key in ['grade', 'grades', 'grades_served', 'grade_level', 'grade_levels', 'column_e']:
+                    val = mr.get(key)
+                    if val:
+                        grade_cells.append(str(val))
+                # fallback to any left-most grade-like field if none found
+                if not grade_cells:
+                    grade_cell = (
+                        mr.get('grade') or mr.get('grades') or mr.get('grades_served')
+                        or mr.get('grade_level') or mr.get('grade_levels') or mr.get('column_e') or ''
+                    )
+                    grade_cells = [str(grade_cell)] if grade_cell else []
+                for cell in grade_cells:
+                    for gt in _normalize_grade_tokens(cell):
+                        allowed_set.add(gt)
             allowed_grades = sorted(
                 list(allowed_set),
                 key=lambda g: (g != 'PK', g != 'K', int(g) if str(g).isdigit() else -1)
