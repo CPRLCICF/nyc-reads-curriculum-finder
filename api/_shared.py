@@ -544,7 +544,7 @@ def _normalize_grade_tokens(cell: str) -> list[str]:
             return
         if t in ('PRE-K', 'PREK', 'P K', 'PK'):
             t = 'PK'
-        if t in ('KDG', 'KINDERGARTEN', 'OK'):
+        if t in ('KDG', 'KINDERGARTEN', 'OK', '0K'):
             t = 'K'
         if t == 'PK' or t == 'K' or t.isdigit():
             if t not in out:
@@ -553,7 +553,7 @@ def _normalize_grade_tokens(cell: str) -> list[str]:
         xu = x.strip().upper()
         if xu in ('PRE-K', 'PREK', 'P K', 'PK'):
             return 0
-        if xu in ('K', 'KDG', 'KINDERGARTEN', 'OK'):
+        if xu in ('K', 'KDG', 'KINDERGARTEN', 'OK', '0K'):
             return 1
         return int(xu) if xu.isdigit() else -1
     def from_num(n: int) -> str:
@@ -561,7 +561,7 @@ def _normalize_grade_tokens(cell: str) -> list[str]:
 
     # First, extract any embedded ranges anywhere in the string, e.g.
     # "High Schools (9-12) & Combined" -> 9,10,11,12
-    for m in re.finditer(r'(PK|PRE-K|PREK|P K|K|OK|\d{1,2})\s*-\s*(PK|PRE-K|PREK|P K|K|OK|\d{1,2})', txt, flags=re.I):
+    for m in re.finditer(r'(PK|PRE-K|PREK|P K|K|OK|0K|\d{1,2})\s*-\s*(PK|PRE-K|PREK|P K|K|OK|0K|\d{1,2})', txt, flags=re.I):
         sa = to_num(m.group(1))
         sb = to_num(m.group(2))
         if sa >= 0 and sb >= 0:
@@ -573,7 +573,7 @@ def _normalize_grade_tokens(cell: str) -> list[str]:
                 add(from_num(n))
 
     # Then extract standalone tokens, e.g. "PK/K", "9,10,11,12"
-    for tok in re.findall(r'(PK|PRE-K|PREK|P K|K|OK|\d{1,2})', txt, flags=re.I):
+    for tok in re.findall(r'(PK|PRE-K|PREK|P K|K|OK|0K|\d{1,2})', txt, flags=re.I):
         add(tok)
     return out
 
