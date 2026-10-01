@@ -613,6 +613,34 @@
   function renderEmptyMessageFromResponse(json) {
     if (!els.resultsMount) return;
     clearRoleBlocks();
+    if (json && json.message_type === 'curriculum_not_rolled_out') {
+      const message = document.createElement('div');
+      message.className = 'empty';
+      message.textContent = json.message || '';
+
+      [
+        {
+          href: 'https://www.schools.nyc.gov/learning/subjects/literacy/nyc-reads',
+          label: 'NYC Schools',
+        },
+        {
+          href: 'https://www.nycreadstogether.org/',
+          label: 'NYC Reads Together',
+        },
+      ].forEach((link, index) => {
+        message.appendChild(document.createElement('br'));
+        if (index === 0) message.appendChild(document.createElement('br'));
+        const anchor = document.createElement('a');
+        anchor.href = link.href;
+        anchor.target = '_blank';
+        anchor.rel = 'noopener noreferrer';
+        anchor.textContent = link.label;
+        message.appendChild(anchor);
+      });
+
+      els.resultsMount.replaceChildren(message);
+      return;
+    }
     if (json && json.message_type === 'high_school_not_available') {
       const infoUrl = String((json && json.info_url) || 'https://www.schools.nyc.gov/learning/subjects/literacy/nyc-reads');
       const learnMore = state.selectedLanguage === 'es'
@@ -1025,4 +1053,3 @@
     console.log('[Boot] Event binding complete');
   }());
 })();
-
