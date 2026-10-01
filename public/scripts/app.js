@@ -25,6 +25,13 @@
     search: document.getElementById('searchBtn'),
     language: document.getElementById('languageSelect'),
     filtersForm: document.getElementById('filtersForm'),
+    k8ProgramButton: document.getElementById('k8ProgramButton'),
+    prekProgramButton: document.getElementById('prekProgramButton'),
+    filters: document.getElementById('filters'),
+    prekResources: document.getElementById('prekResources'),
+    resultsDivider: document.getElementById('resultsDivider'),
+    results: document.getElementById('results'),
+    feedbackSection: document.getElementById('feedbackSection'),
     roleIntroMount: document.getElementById('roleIntroMount'),
     resultsMount: document.getElementById('resultsMount'),
     roleOutroMount: document.getElementById('roleOutroMount'),
@@ -42,6 +49,7 @@
     selectedRole: '',
     lastContext: null,
     lastDetails: { eq: [], genres: [], books: [] },
+    selectedProgram: 'k8',
   };
 
   const translations = {
@@ -52,7 +60,12 @@
       aboutIntro: 'This curriculum search tool helps identify exactly what students are learning in literacy at a given school — including the curriculum, current module, essential questions, and book lists.',
       disclaimerLabel: 'Disclaimer:',
       disclaimerText: 'This tool is intended to provide general information about district and school curriculum implementation. Timelines and materials may vary by school or classroom. For the most accurate and up-to-date information, please contact your school directly.',
-      filtersTitle: 'Find Your Curriculum',
+      filtersTitle: 'K-8 Find Your Curriculum',
+      k8Program: 'K-8',
+      prekProgram: 'Pre-K & 3K',
+      prekTitle: 'Pre-K & 3K Resources',
+      prekMessage: 'The NYC Reads Curriculum Finder Team is actively working to incorporate resources for 3K and Pre-K students into our website. Please check back in the future for updates. For now, you can find more information at: ',
+      prekLink: 'Pre-K/3K Build a Reading Routine',
       districtLabel: 'District',
       schoolLabel: 'School',
       schoolPlaceholder: 'Type to search schools…',
@@ -110,7 +123,12 @@
       aboutIntro: 'Esta herramienta ayuda a identificar exactamente lo que estudian los estudiantes en alfabetizacion en una escuela determinada, incluido el curriculo, el modulo actual, las preguntas esenciales y las listas de lectura.',
       disclaimerLabel: 'Aviso:',
       disclaimerText: 'Esta herramienta ofrece informacion general sobre la implementacion del curriculo por distrito y escuela. Los tiempos y materiales pueden variar segun la escuela o el salon. Para obtener la informacion mas precisa y actualizada, comunicate directamente con tu escuela.',
-      filtersTitle: 'Encuentra tu curriculo',
+      filtersTitle: 'K-8: Encuentra tu curriculo',
+      k8Program: 'K-8',
+      prekProgram: 'Pre-K y 3K',
+      prekTitle: 'Recursos de Pre-K y 3K',
+      prekMessage: 'El equipo de NYC Reads Curriculum Finder esta trabajando activamente para incorporar recursos para estudiantes de 3K y Pre-K en nuestro sitio web. Vuelve a consultar mas adelante para ver las novedades. Por ahora, puedes encontrar mas informacion aqui: ',
+      prekLink: 'Pre-K/3K Build a Reading Routine',
       districtLabel: 'Distrito',
       schoolLabel: 'Escuela',
       schoolPlaceholder: 'Escribe para buscar escuelas…',
@@ -316,6 +334,11 @@
     setText('disclaimerLabel', t('disclaimerLabel'));
     setText('disclaimerText', t('disclaimerText'));
     setText('filtersTitle', t('filtersTitle'));
+    setText('k8ProgramButton', t('k8Program'));
+    setText('prekProgramButton', t('prekProgram'));
+    setText('prekTitle', t('prekTitle'));
+    setText('prekMessage', t('prekMessage'));
+    setText('prekResourceLink', t('prekLink'));
     setText('districtLabel', t('districtLabel'));
     setText('schoolLabel', t('schoolLabel'));
     setText('gradeLabel', t('gradeLabel'));
@@ -1034,14 +1057,39 @@
     if (els.filtersForm) { els.filtersForm.addEventListener('submit', (e) => { e.preventDefault(); runSearch(); }); }
   }
 
+  function bindProgramEvents() {
+    if (els.k8ProgramButton) els.k8ProgramButton.addEventListener('click', () => selectProgram('k8'));
+    if (els.prekProgramButton) els.prekProgramButton.addEventListener('click', () => selectProgram('prek'));
+  }
+
+  function selectProgram(program) {
+    state.selectedProgram = program;
+    const isK8 = program === 'k8';
+    if (els.k8ProgramButton) {
+      els.k8ProgramButton.setAttribute('aria-pressed', String(isK8));
+      els.k8ProgramButton.classList.toggle('is-selected', isK8);
+    }
+    if (els.prekProgramButton) {
+      els.prekProgramButton.setAttribute('aria-pressed', String(!isK8));
+      els.prekProgramButton.classList.toggle('is-selected', !isK8);
+    }
+    if (els.filters) els.filters.hidden = !isK8;
+    if (els.prekResources) els.prekResources.hidden = isK8;
+    if (els.resultsDivider) els.resultsDivider.hidden = !isK8;
+    if (els.results) els.results.hidden = !isK8;
+    if (els.feedbackSection) els.feedbackSection.hidden = !isK8;
+  }
+
   (async function boot() {
     state.selectedLanguage = getStoredLanguage();
     if (els.language) els.language.value = state.selectedLanguage;
     applyLanguage();
+    selectProgram('k8');
     // Initialize placeholders so dropdowns are visible immediately
     if (els.district) setOptions(els.district, [], t('allDistricts'));
     if (els.grade) setOptions(els.grade, [], t('allGrades'));
     setDefaultDate();
+    bindProgramEvents();
     console.log('[Boot] Default date set', els.date ? els.date.value : null);
     await loadMeta();
     console.log('[Boot] loadMeta complete', {

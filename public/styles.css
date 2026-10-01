@@ -62,6 +62,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helve
 @media (max-width: 720px) { .hero-overlay { grid-template-columns: 1fr; } .hero-title, .hero-subtitle { grid-column: 1; justify-self: center; text-align: center; } }
 .hero-contained + .about-wrap { margin-top: 16px; }
 
+.program-switch { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 20px 0 16px; }
+.program-button { min-width: 0; min-height: 56px; padding: 10px 16px; border: 2px solid #0b1d4a; border-radius: 14px; background: #fff; color: #0b1d4a; cursor: pointer; font: inherit; font-size: clamp(16px, 2.4vw, 22px); font-weight: 700; }
+.program-button.is-selected { background: #0b1d4a; color: #fff; }
+.program-button:focus-visible { outline: 3px solid #2563eb; outline-offset: 3px; }
+.prek-resources { line-height: 1.6; }
+.prek-resources h2 { margin-bottom: 12px; }
+.prek-resources p { margin: 0; }
+.prek-resources a { color: #1D4ED8; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+[hidden] { display: none !important; }
+
 .layout { display: grid; grid-template-columns: 320px 1fr; gap: 16px; align-items: start; margin-top: 16px; }
 .filters { position: static; box-shadow: none; }
 .filter-grid { display: grid; grid-template-columns: 1fr; gap: 12px; align-items: end; }
@@ -302,6 +312,8 @@ details.about-more:not([open]) > summary::after { content:" ↓"; }
   .hero-title { max-width: 100%; font-size: clamp(24px, 8vw, 34px); }
   .hero-title .tight { white-space: normal; }
   .hero-subtitle { max-width: 34rem; font-size: clamp(13px, 3.8vw, 16px); line-height: 1.35; }
+  .program-switch { gap: 8px; margin-top: 16px; }
+  .program-button { min-height: 50px; padding: 8px; border-radius: 12px; font-size: 16px; }
   .about-card, .card { padding: 16px; }
   .card-head { align-items: flex-start; }
   .card-head h2, h2 { font-size: clamp(22px, 6vw, 28px); }

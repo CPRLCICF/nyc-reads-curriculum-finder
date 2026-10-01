@@ -42,8 +42,13 @@
     </section>
 
     <main class="container">
-      <section id="filters" class="card section" aria-label="Filters">
-        <h2 id="filtersTitle">Find Your Curriculum</h2>
+      <div class="program-switch" role="group" aria-label="Curriculum program">
+        <button id="k8ProgramButton" class="program-button is-selected" type="button" aria-pressed="true">K-8</button>
+        <button id="prekProgramButton" class="program-button" type="button" aria-pressed="false">Pre-K &amp; 3K</button>
+      </div>
+
+      <section id="filters" class="card section" aria-label="K-8 Filters">
+        <h2 id="filtersTitle">K-8 Find Your Curriculum</h2>
         <form id="filtersForm" class="grid-2" style="align-items:end;">
           <div class="filter">
             <label for="filterDistrict" id="districtLabel">District</label>
@@ -94,7 +99,12 @@
         </form>
       </section>
 
-      <div class="divider" role="separator" aria-hidden="true"></div>
+      <section id="prekResources" class="card section prek-resources" aria-labelledby="prekTitle" hidden>
+        <h2 id="prekTitle">Pre-K &amp; 3K Resources</h2>
+        <p><span id="prekMessage">The NYC Reads Curriculum Finder Team is actively working to incorporate resources for 3K and Pre-K students into our website. Please check back in the future for updates. For now, you can find more information at: </span><a id="prekResourceLink" href="https://static1.squarespace.com/static/6a14f58b81e7ae70ef22efbb/t/6a9a59d31962e811c3634866/1788500435796/NYC+Reads+Together+Build+a+Routine+With+Your+Young+Reader.pdf" target="_blank" rel="noopener noreferrer">Pre-K/3K Build a Reading Routine</a>.</p>
+      </section>
+
+      <div id="resultsDivider" class="divider" role="separator" aria-hidden="true"></div>
 
       <section id="results" class="section" aria-label="Curriculum Information">
         <h2 id="resultsTitle">Curriculum Information</h2>
@@ -103,7 +113,7 @@
         <div id="roleOutroMount"></div>
       </section>
 
-      <section class="section" aria-label="Feedback">
+      <section id="feedbackSection" class="section" aria-label="Feedback">
         <div class="feedback-card">
           <h3 id="feedbackTitle">Help Us Improve</h3>
           <p id="feedbackPrompt">
