@@ -848,12 +848,27 @@ def build_search(params: dict):
                 })
             resp['sample_rows'] = sample_rows
         return resp
+    curriculum_not_rolled_out = (
+        _normalize_curriculum_text(resolved_curriculum) in {'n/a', 'na', 'none'}
+    )
+    grade_is_k8 = selected_grade_norm == 'K' or selected_grade_norm in {
+        str(grade) for grade in range(1, 9)
+    }
+    if q_grade and matching_rows and curriculum_not_rolled_out and grade_is_k8:
+        return {
+            'results': [],
+            'message': 'NYC Reads has not yet rolled out at this school. Please contact the school directly for information about its current literacy curriculum. For more information about NYC Reads visit:',
+            'message_type': 'curriculum_not_rolled_out',
+            'selected_school': q_school,
+            'selected_grade': selected_grade_norm
+        }
     # If we confidently know this grade is not allowed for this school, short-circuit with empty results
     if q_grade and matching_rows and allowed_grades:
         if selected_grade_norm not in set(allowed_grades):
             resp = {
                 'results': [],
-                'message': 'NYC Reads has not yet rolled out at this school. Please contact the school directly for information about its current literacy curriculum. For more information about NYC Reads visit:<br><br><a href="https://www.schools.nyc.gov/learning/subjects/literacy/nyc-reads" target="_blank" rel="noopener noreferrer">NYC Schools</a><br><a href="https://www.nycreadstogether.org/" target="_blank" rel="noopener noreferrer">NYC Reads Together</a>',
+                'message': 'NYC Reads has not yet rolled out at this school. Please contact the school directly for information about its current literacy curriculum. For more information about NYC Reads visit:',
+                'message_type': 'curriculum_not_rolled_out',
                 'selected_school': q_school,
                 'selected_grade': selected_grade_norm
             }

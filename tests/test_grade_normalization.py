@@ -22,3 +22,28 @@ def test_normalize_grade_tokens_basic_range():
     # ensure range parsing includes K and upper bound 2
     assert 'K' in tokens
     assert '2' in tokens
+
+
+def test_unavailable_curriculum_response_has_safe_rendering_contract(monkeypatch):
+    monkeypatch.setattr(
+        _shared,
+        '_fetch_schools_csv',
+        lambda: [{
+            'school_name': 'J.H.S. 278 Marine Park',
+            'district_#': '22',
+            'grade': 'Middle Schools (6–8)',
+            'grade_level': '6, 7, 8',
+            'curriculum': 'N/A',
+        }],
+    )
+
+    for grade in ['K', *[str(value) for value in range(1, 9)]]:
+        response = _shared.build_search({
+            'school': 'J.H.S. 278 Marine Park',
+            'district': '22',
+            'grade': grade,
+        })
+
+        assert response['message_type'] == 'curriculum_not_rolled_out'
+        assert 'NYC Reads has not yet rolled out at this school.' in response['message']
+        assert '<a ' not in response['message']
